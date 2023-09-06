@@ -13,13 +13,16 @@ export const submitCookieToStorageRouteHandler = async (cookie: string) => {
 }
 
 export const readCookieFromStorageRouteHandler = async (): Promise<string> => {
-  const responseWithCookieFromStorage = await fetch('http://localhost:3000/api/readIronSessionCookie', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-  const data = await responseWithCookieFromStorage.json();
+  const responseWithCookieFromStorage = await fetch(
+    'http://localhost:3000/api/readIronSessionCookie',
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  )
+  const data = await responseWithCookieFromStorage.json()
   const cookieValue = data?.cookieInStorage || 'No Cookie In Storage'
   return cookieValue
 }

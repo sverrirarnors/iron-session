@@ -45,24 +45,38 @@ Refer to the [examples](examples).
 
 1. Define your session options
 1. Initialize your session with:
-    - sessionOptions and the respective parameters
-    - the type definition of your session data
+   - sessionOptions and the respective parameters
+   - the type definition of your session data
 1. Set the session data variables
 1. Set the data to or read the data from the browser cookie storage
-    - session.save(): Set the session variables as an encrypted string to the browser cookie storage
-    - session.destroy(): Set cookie value in the browser cookie storage as an empty value to clear the cookie data
-    - Read the session variables by decrypting the encrypted string from the cookie browser storage
+   - session.save(): Set the session variables as an encrypted string to the
+     browser cookie storage
+   - session.destroy(): Set cookie value in the browser cookie storage as an
+     empty value to clear the cookie data
+   - Read the session variables by decrypting the encrypted string from the
+     cookie browser storage
 
 ## API
 
 ### Iron Session Options
 
-Only two options are required: `password` and `cookieName`. Everything else is automatically computed and usually doesn't need to be changed.
+Only two options are required: `password` and `cookieName`. Everything else is
+automatically computed and usually doesn't need to be changed.
 
-- `password`, **required**: Private key used to encrypt the cookie. It has to be at least 32 characters long. Use <https://1password.com/password-generator/> to generate strong passwords. `password` can be either a `string` or an `array` of objects like this: `[{id: 2, password: "..."}, {id: 1, password: "..."}]` to allow for password rotation.
+- `password`, **required**: Private key used to encrypt the cookie. It has to be
+  at least 32 characters long. Use <https://1password.com/password-generator/>
+  to generate strong passwords. `password` can be either a `string` or an
+  `array` of objects like this:
+  `[{id: 2, password: "..."}, {id: 1, password: "..."}]` to allow for password
+  rotation.
 - `cookieName`, **required**: Name of the cookie to be stored
-- `ttl`, _optional_: In seconds. Default to the equivalent of 14 days. You can set this to `0` and iron-session will compute the maximum allowed value by cookies (~70 years).
-- [`cookieOptions`](https://github.com/jshttp/cookie#cookieserializename-value-options), _optional_: Any option available from [jshttp/cookie#serialize](https://github.com/jshttp/cookie#cookieserializename-value-options). Default to:
+- `ttl`, _optional_: In seconds. Default to the equivalent of 14 days. You can
+  set this to `0` and iron-session will compute the maximum allowed value by
+  cookies (~70 years).
+- [`cookieOptions`](https://github.com/jshttp/cookie#cookieserializename-value-options),
+  _optional_: Any option available from
+  [jshttp/cookie#serialize](https://github.com/jshttp/cookie#cookieserializename-value-options).
+  Default to:
 
 ```js
 {
@@ -85,149 +99,147 @@ Only two options are required: `password` and `cookieName`. Everything else is a
 
 ```ts
 interface IronSessionOptions {
-    /**
-     * The cookie name that will be used inside the browser. Make sure it's unique
-     * given your application.
-     *
-     * @example 'vercel-session'
-     */
-    cookieName: string;
-    /**
-     * The password(s) that will be used to encrypt the cookie. Can either be a string
-     * or an object.
-     *
-     * When you provide multiple passwords then all of them will be used to decrypt
-     * the cookie. But only the most recent (`= highest key`, `2` in the example)
-     * password will be used to encrypt the cookie. This allows password rotation.
-     *
-     * @example { 1: 'password-1', 2: 'password-2' }
-     */
-    password: Password;
-    /**
-     * The time (in seconds) that the session will be valid for. Also sets the
-     * `max-age` attribute of the cookie automatically (`= ttl - 60s`, so that the
-     * cookie always expire before the session).
-     *
-     * `ttl = 0` means no expiration.
-     *
-     * @default 1209600
-     */
-    ttl?: number;
-    /**
-     * The options that will be passed to the cookie library.
-     *
-     * If you want to use "session cookies" (cookies that are deleted when the browser
-     * is closed) then you need to pass `cookieOptions: { maxAge: undefined }`
-     *
-     * @see https://github.com/jshttp/cookie#options-1
-     */
-    cookieOptions?: CookieSerializeOptions;
+  /**
+   * The cookie name that will be used inside the browser. Make sure it's unique
+   * given your application.
+   *
+   * @example 'vercel-session'
+   */
+  cookieName: string
+  /**
+   * The password(s) that will be used to encrypt the cookie. Can either be a string
+   * or an object.
+   *
+   * When you provide multiple passwords then all of them will be used to decrypt
+   * the cookie. But only the most recent (`= highest key`, `2` in the example)
+   * password will be used to encrypt the cookie. This allows password rotation.
+   *
+   * @example { 1: 'password-1', 2: 'password-2' }
+   */
+  password: Password
+  /**
+   * The time (in seconds) that the session will be valid for. Also sets the
+   * `max-age` attribute of the cookie automatically (`= ttl - 60s`, so that the
+   * cookie always expire before the session).
+   *
+   * `ttl = 0` means no expiration.
+   *
+   * @default 1209600
+   */
+  ttl?: number
+  /**
+   * The options that will be passed to the cookie library.
+   *
+   * If you want to use "session cookies" (cookies that are deleted when the browser
+   * is closed) then you need to pass `cookieOptions: { maxAge: undefined }`
+   *
+   * @see https://github.com/jshttp/cookie#options-1
+   */
+  cookieOptions?: CookieSerializeOptions
 }
-
 ```
 
 ##### CookieSerializeOptions
 
 ```ts
 interface CookieSerializeOptions {
-    /**
-     * Specifies the value for the {@link https://tools.ietf.org/html/rfc6265#section-5.2.3|Domain Set-Cookie attribute}. By default, no
-     * domain is set, and most clients will consider the cookie to apply to only
-     * the current domain.
-     */
-    domain?: string | undefined;
+  /**
+   * Specifies the value for the {@link https://tools.ietf.org/html/rfc6265#section-5.2.3|Domain Set-Cookie attribute}. By default, no
+   * domain is set, and most clients will consider the cookie to apply to only
+   * the current domain.
+   */
+  domain?: string | undefined
 
-    /**
-     * Specifies a function that will be used to encode a cookie's value. Since
-     * value of a cookie has a limited character set (and must be a simple
-     * string), this function can be used to encode a value into a string suited
-     * for a cookie's value.
-     *
-     * The default function is the global `encodeURIComponent`, which will
-     * encode a JavaScript string into UTF-8 byte sequences and then URL-encode
-     * any that fall outside of the cookie range.
-     */
-    encode?(value: string): string;
+  /**
+   * Specifies a function that will be used to encode a cookie's value. Since
+   * value of a cookie has a limited character set (and must be a simple
+   * string), this function can be used to encode a value into a string suited
+   * for a cookie's value.
+   *
+   * The default function is the global `encodeURIComponent`, which will
+   * encode a JavaScript string into UTF-8 byte sequences and then URL-encode
+   * any that fall outside of the cookie range.
+   */
+  encode?(value: string): string
 
-    /**
-     * Specifies the `Date` object to be the value for the {@link https://tools.ietf.org/html/rfc6265#section-5.2.1|`Expires` `Set-Cookie` attribute}. By default,
-     * no expiration is set, and most clients will consider this a "non-persistent cookie" and will delete
-     * it on a condition like exiting a web browser application.
-     *
-     * *Note* the {@link https://tools.ietf.org/html/rfc6265#section-5.3|cookie storage model specification}
-     * states that if both `expires` and `maxAge` are set, then `maxAge` takes precedence, but it is
-     * possible not all clients by obey this, so if both are set, they should
-     * point to the same date and time.
-     */
-    expires?: Date | undefined;
-    /**
-     * Specifies the boolean value for the {@link https://tools.ietf.org/html/rfc6265#section-5.2.6|`HttpOnly` `Set-Cookie` attribute}.
-     * When truthy, the `HttpOnly` attribute is set, otherwise it is not. By
-     * default, the `HttpOnly` attribute is not set.
-     *
-     * *Note* be careful when setting this to true, as compliant clients will
-     * not allow client-side JavaScript to see the cookie in `document.cookie`.
-     */
-    httpOnly?: boolean | undefined;
-    /**
-     * Specifies the number (in seconds) to be the value for the `Max-Age`
-     * `Set-Cookie` attribute. The given number will be converted to an integer
-     * by rounding down. By default, no maximum age is set.
-     *
-     * *Note* the {@link https://tools.ietf.org/html/rfc6265#section-5.3|cookie storage model specification}
-     * states that if both `expires` and `maxAge` are set, then `maxAge` takes precedence, but it is
-     * possible not all clients by obey this, so if both are set, they should
-     * point to the same date and time.
-     */
-    maxAge?: number | undefined;
-    /**
-     * Specifies the value for the {@link https://tools.ietf.org/html/rfc6265#section-5.2.4|`Path` `Set-Cookie` attribute}.
-     * By default, the path is considered the "default path".
-     */
-    path?: string | undefined;
-    /**
-     * Specifies the `string` to be the value for the [`Priority` `Set-Cookie` attribute][rfc-west-cookie-priority-00-4.1].
-     *
-     * - `'low'` will set the `Priority` attribute to `Low`.
-     * - `'medium'` will set the `Priority` attribute to `Medium`, the default priority when not set.
-     * - `'high'` will set the `Priority` attribute to `High`.
-     *
-     * More information about the different priority levels can be found in
-     * [the specification][rfc-west-cookie-priority-00-4.1].
-     *
-     * **note** This is an attribute that has not yet been fully standardized, and may change in the future.
-     * This also means many clients may ignore this attribute until they understand it.
-     */
-    priority?: 'low' | 'medium' | 'high' | undefined;
-    /**
-     * Specifies the boolean or string to be the value for the {@link https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-03#section-4.1.2.7|`SameSite` `Set-Cookie` attribute}.
-     *
-     * - `true` will set the `SameSite` attribute to `Strict` for strict same
-     * site enforcement.
-     * - `false` will not set the `SameSite` attribute.
-     * - `'lax'` will set the `SameSite` attribute to Lax for lax same site
-     * enforcement.
-     * - `'strict'` will set the `SameSite` attribute to Strict for strict same
-     * site enforcement.
-     *  - `'none'` will set the SameSite attribute to None for an explicit
-     *  cross-site cookie.
-     *
-     * More information about the different enforcement levels can be found in {@link https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-03#section-4.1.2.7|the specification}.
-     *
-     * *note* This is an attribute that has not yet been fully standardized, and may change in the future. This also means many clients may ignore this attribute until they understand it.
-     */
-    sameSite?: true | false | 'lax' | 'strict' | 'none' | undefined;
-    /**
-     * Specifies the boolean value for the {@link https://tools.ietf.org/html/rfc6265#section-5.2.5|`Secure` `Set-Cookie` attribute}. When truthy, the
-     * `Secure` attribute is set, otherwise it is not. By default, the `Secure` attribute is not set.
-     *
-     * *Note* be careful when setting this to `true`, as compliant clients will
-     * not send the cookie back to the server in the future if the browser does
-     * not have an HTTPS connection.
-     */
-    secure?: boolean | undefined;
+  /**
+   * Specifies the `Date` object to be the value for the {@link https://tools.ietf.org/html/rfc6265#section-5.2.1|`Expires` `Set-Cookie` attribute}. By default,
+   * no expiration is set, and most clients will consider this a "non-persistent cookie" and will delete
+   * it on a condition like exiting a web browser application.
+   *
+   * *Note* the {@link https://tools.ietf.org/html/rfc6265#section-5.3|cookie storage model specification}
+   * states that if both `expires` and `maxAge` are set, then `maxAge` takes precedence, but it is
+   * possible not all clients by obey this, so if both are set, they should
+   * point to the same date and time.
+   */
+  expires?: Date | undefined
+  /**
+   * Specifies the boolean value for the {@link https://tools.ietf.org/html/rfc6265#section-5.2.6|`HttpOnly` `Set-Cookie` attribute}.
+   * When truthy, the `HttpOnly` attribute is set, otherwise it is not. By
+   * default, the `HttpOnly` attribute is not set.
+   *
+   * *Note* be careful when setting this to true, as compliant clients will
+   * not allow client-side JavaScript to see the cookie in `document.cookie`.
+   */
+  httpOnly?: boolean | undefined
+  /**
+   * Specifies the number (in seconds) to be the value for the `Max-Age`
+   * `Set-Cookie` attribute. The given number will be converted to an integer
+   * by rounding down. By default, no maximum age is set.
+   *
+   * *Note* the {@link https://tools.ietf.org/html/rfc6265#section-5.3|cookie storage model specification}
+   * states that if both `expires` and `maxAge` are set, then `maxAge` takes precedence, but it is
+   * possible not all clients by obey this, so if both are set, they should
+   * point to the same date and time.
+   */
+  maxAge?: number | undefined
+  /**
+   * Specifies the value for the {@link https://tools.ietf.org/html/rfc6265#section-5.2.4|`Path` `Set-Cookie` attribute}.
+   * By default, the path is considered the "default path".
+   */
+  path?: string | undefined
+  /**
+   * Specifies the `string` to be the value for the [`Priority` `Set-Cookie` attribute][rfc-west-cookie-priority-00-4.1].
+   *
+   * - `'low'` will set the `Priority` attribute to `Low`.
+   * - `'medium'` will set the `Priority` attribute to `Medium`, the default priority when not set.
+   * - `'high'` will set the `Priority` attribute to `High`.
+   *
+   * More information about the different priority levels can be found in
+   * [the specification][rfc-west-cookie-priority-00-4.1].
+   *
+   * **note** This is an attribute that has not yet been fully standardized, and may change in the future.
+   * This also means many clients may ignore this attribute until they understand it.
+   */
+  priority?: 'low' | 'medium' | 'high' | undefined
+  /**
+   * Specifies the boolean or string to be the value for the {@link https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-03#section-4.1.2.7|`SameSite` `Set-Cookie` attribute}.
+   *
+   * - `true` will set the `SameSite` attribute to `Strict` for strict same
+   * site enforcement.
+   * - `false` will not set the `SameSite` attribute.
+   * - `'lax'` will set the `SameSite` attribute to Lax for lax same site
+   * enforcement.
+   * - `'strict'` will set the `SameSite` attribute to Strict for strict same
+   * site enforcement.
+   *  - `'none'` will set the SameSite attribute to None for an explicit
+   *  cross-site cookie.
+   *
+   * More information about the different enforcement levels can be found in {@link https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-03#section-4.1.2.7|the specification}.
+   *
+   * *note* This is an attribute that has not yet been fully standardized, and may change in the future. This also means many clients may ignore this attribute until they understand it.
+   */
+  sameSite?: true | false | 'lax' | 'strict' | 'none' | undefined
+  /**
+   * Specifies the boolean value for the {@link https://tools.ietf.org/html/rfc6265#section-5.2.5|`Secure` `Set-Cookie` attribute}. When truthy, the
+   * `Secure` attribute is set, otherwise it is not. By default, the `Secure` attribute is not set.
+   *
+   * *Note* be careful when setting this to `true`, as compliant clients will
+   * not send the cookie back to the server in the future if the browser does
+   * not have an HTTPS connection.
+   */
+  secure?: boolean | undefined
 }
-
 ```
 
 ## Iron Session Object
@@ -238,21 +250,29 @@ interface CookieSerializeOptions {
 const session = getIronSession<IronSessionData>(req, res, sessionOptions)
 ```
 
-The API Route Handler that uses `getIronSession` and returns the Response needs to be called from a client-side environment (ie. a 'use client' file).
+The API Route Handler that uses `getIronSession` and returns the Response needs
+to be called from a client-side environment (ie. a 'use client' file).
 
 ### getServerActionIronSession(userSessionOptions: IronSessionOptions, cookieHandler: ICookieHandler): Promise<IronSession<T>>
 
 ```ts
-const session = getServerActionIronSession<IronSessionData>(sessionOptions, cookies())
+const session = getServerActionIronSession<IronSessionData>(
+  sessionOptions,
+  cookies()
+)
 ```
 
-The `getServerActionIronSession` implementation uses the `cookies()` function from next/headers to set the cookies so that Iron Session can be used in NextJS Server Actions and React Server Components in a server-side environment (ie. a 'use server' file).
+The `getServerActionIronSession` implementation uses the `cookies()` function
+from next/headers to set the cookies so that Iron Session can be used in NextJS
+Server Actions and React Server Components in a server-side environment (ie. a
+'use server' file).
 
 ## Iron Session Functions
 
 ### session.save()
 
-Saves the session and sets the cookie header to be sent once the response is sent.
+Saves the session and sets the cookie header to be sent once the response is
+sent.
 
 ```ts
 await session.save()
@@ -260,13 +280,15 @@ await session.save()
 
 ### session.destroy()
 
-Empties the session object and sets the cookie header to be sent once the response is sent. The browser will then set the cookie value as an empty value.
+Empties the session object and sets the cookie header to be sent once the
+response is sent. The browser will then set the cookie value as an empty value.
 
 ```ts
 await session.destroy()
 ```
 
-Upon calling either `session.save()` or `session.destroy()` the session values are saved to the browser cookie storage.
+Upon calling either `session.save()` or `session.destroy()` the session values
+are saved to the browser cookie storage.
 
 ## NextJS Example
 
@@ -329,13 +351,16 @@ export const submitCookieToStorageRouteHandler = async (cookie: string) => {
 }
 
 export const readCookieFromStorageRouteHandler = async (): Promise<string> => {
-  const responseWithCookieFromStorage = await fetch('http://localhost:3000/api/readIronSessionCookie', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-  const data = await responseWithCookieFromStorage.json();
+  const responseWithCookieFromStorage = await fetch(
+    'http://localhost:3000/api/readIronSessionCookie',
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  )
+  const data = await responseWithCookieFromStorage.json()
   const cookieValue = data?.cookieInStorage || 'No Cookie In Storage'
   return cookieValue
 }
@@ -357,7 +382,9 @@ export async function POST(request: Request) {
     return response
   } catch (error: unknown) {
     console.error((error as Error).message)
-    return new Response(JSON.stringify({ message: (error as Error).message }), { status: 500 })
+    return new Response(JSON.stringify({ message: (error as Error).message }), {
+      status: 500,
+    })
   }
 }
 ```
@@ -375,7 +402,9 @@ export async function GET(request: Request, response: Response) {
     return NextResponse.json({ cookieInStorage: cookeValue })
   } catch (error: unknown) {
     console.error((error as Error).message)
-    return new Response(JSON.stringify({ message: (error as Error).message }), { status: 500 })
+    return new Response(JSON.stringify({ message: (error as Error).message }), {
+      status: 500,
+    })
   }
 }
 ```
@@ -406,10 +435,10 @@ export const readCookieFromStorageServerAction = async (): Promise<string> => {
 ```ts
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    experimental: {
-      serverActions: true,
-    },
-  }
+  experimental: {
+    serverActions: true,
+  },
+}
 
 module.exports = nextConfig
 ```
@@ -418,12 +447,20 @@ module.exports = nextConfig
 
 ### When should I use getIronSession or getServerActionIronSession?
 
-Use `getIronSession` when you wish to use Iron Session in a client-side environment with API Route Handlers and use  `getServerActionIronSession` when you wish to use Iron Session in a server-side environment with Server Components.
+Use `getIronSession` when you wish to use Iron Session in a client-side
+environment with API Route Handlers and use `getServerActionIronSession` when
+you wish to use Iron Session in a server-side environment with Server
+Components.
 
-For NextJS projects using App Router with Server Actions enabled in their `next.config.js` file, using `getServerActionIronSession` is preferable for two reasons:
+For NextJS projects using App Router with Server Actions enabled in their
+`next.config.js` file, using `getServerActionIronSession` is preferable for two
+reasons:
 
 - allows Iron Session to be called and used from a server-side environment
-- allows for more concise code. Server Actions can be called directly from your components without the need for a manually created API route. You can see the smaller amount of code used for `getServerActionIronSession` compared to `getIronSession` in the example.
+- allows for more concise code. Server Actions can be called directly from your
+  components without the need for a manually created API route. You can see the
+  smaller amount of code used for `getServerActionIronSession` compared to
+  `getIronSession` in the example.
 
 ## Credits
 

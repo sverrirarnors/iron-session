@@ -1,20 +1,24 @@
 import {
-  IronSessionOptions, getIronSession, IronSessionData, getServerActionIronSession
+  IronSessionOptions,
+  getIronSession,
+  IronSessionData,
+  getServerActionIronSession,
 } from 'iron-session'
 
-import { cookies } from 'next/headers';
+import { cookies } from 'next/headers'
 
 export const sessionOptions: IronSessionOptions = {
-  password: 'change-this-this-is-not-a-secure-password',
-  cookieName: 'cookieNameInBrowser',
+  password: process.env.SECRET_COOKIE_PASSWORD!,
+  cookieName: 'user',
   cookieOptions: {
     secure: process.env.NODE_ENV === 'production',
+    maxAge: 60 * 60 * 24 * 365, // 1 year
   },
 }
 
 declare module 'iron-session' {
   interface IronSessionData {
-    cookieVariable?: string;
+    cookieVariable?: any
   }
 }
 
@@ -28,7 +32,4 @@ const getServerActionSession = async () => {
   return session
 }
 
-export {
-  getSession,
-  getServerActionSession
-}
+export { getSession, getServerActionSession }
